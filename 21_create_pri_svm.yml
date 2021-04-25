@@ -1,0 +1,77 @@
+#!/usr/bin/env ansible-playbook
+
+################################################################################
+#
+# Title:        21_create_pri_svm.yml 
+# Author:       Vish Hulikal
+# Date:         2020-06-12
+# Description:  Create a primary SVM for NAS
+#               with Ansible modules
+#
+# Modules:      na_ontap_svm
+#
+# URLs:         http://docs.netapp.com/ontap-9/index.jsp
+#               https://galaxy.ansible.com/netapp/ontap
+#
+# Built-in help:
+# ansible-doc netapp.ontap.na_ontap_svm
+#
+################################################################################
+
+- hosts: localhost
+  gather_facts: false
+  vars:
+    login: &login
+      hostname:       "{{ PRI_CLU }}"
+      username:       "{{ PRI_CLU_USER }}"
+      password:       "{{ PRI_CLU_PASS }}"
+      https:          true
+      validate_certs: false
+    vol_name: "nas_svm_cifs_01"
+    vserver: "nas_svm"
+# root_volume_aggregate currently not supported with REST
+#      use_rest:       Always
+  vars_files:
+    - global_nas.vars
+  collections:
+    - netapp.ontap
+
+  tasks:
+  # - name: Create primary SVM
+  #   na_ontap_svm:
+  #     state:                 present
+  #     name:                  "{{ PRI_SVM }}"
+  #     root_volume_aggregate: "{{ PRI_AGGR }}"
+  #     comment:               Created with Ansible
+  #     <<: *input
+    - name: Create Volumes
+      na_ontap_volume:
+        state: present
+        name: "{{ vol_name }}"
+        vserver: "{{ vserver }}"
+        aggregate_name: "{{ PRI_AGGR }}"
+        size: 20
+        size_unit: mb
+        policy: default
+        junction_path: "/{{ vol_name}}"
+        percent_snapshot_space: 0
+        space_guarantee: none
+        volume_security_style: "ntfs"
+        wait_for_completion: true
+        <<: *login
+    - name: Create Qtree
+      na_ontap_qtree:
+        state: present
+        name: cifs_01
+        flexvol_name: "{{ vol_name}}" 
+        security_style: ntfs
+        oplocks: disabled
+        unix_permissions:
+        vserver: "{{ vserver }}"
+        <<: *login
+    - name: Create Share
+      na_ontap_cifs:
+        share_name:  "{{ vol_name }}"
+        vserver: "{{ vserver }}"
+        path: "/{{vol_name}}"
+        <<: *login
