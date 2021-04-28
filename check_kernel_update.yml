@@ -1,0 +1,37 @@
+---
+# Untested example of upgrading kernel for centos/rh servers
+#- hosts: centos-servers
+- hosts: rhel2
+  vars:
+    arch: x86_64
+    #kernel_ver: 3.10.0-1160.15.2.el7
+    kernel_ver: 3.10.0-1160.24.1.el7
+  remote_user: root
+  become: yes
+  become_method: sudo
+  gather_facts: yes
+  tasks:
+  - name: debug
+    debug:
+      var: "{{ item }}"
+    loop:
+      - ansible_facts.kernel
+      - kernel_ver
+
+  - name: Install the packages
+    yum:
+        name: kernel-{{kernel_ver}}.{{arch}}
+        state: present
+    #when: "{{ ansible_kernel }}  <  {{ kernel_ver }}"
+    notify: restart_system
+#  
+  handlers:
+   - name: restart_system
+     reboot:
+        reboot_timeout: 3600
+        test_command: uname -r
+#   - name: restart_system
+#     debug:
+ #       msg: "restart called"
+#     reboot:
+#        reboot_timeout: 3600
