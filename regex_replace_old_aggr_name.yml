@@ -4,8 +4,8 @@
   name: NetApp Cluster1 System Setup
   vars:  
         ansible_python_interpreter: /usr/bin/python2
-        old_name: \"aggr1_cluster1_01\"
-        new_name: \"aggr1_cluster1_01_data\"
+        old_name: \"aggr0_cluster1_01\"
+        new_name: '"aggr1_cluster1_01_data"'
         pkgs:
           - libselinux-python
           - libselinux-python3
@@ -18,7 +18,7 @@
 
   - name: replace old aggr name with new name
     replace:
-      path: "{{ item }}"
+      path: /root/ansible-workshop/{{ item }}
       regexp: "{{ old_name }}"
       replace: "{{ new_name }}"
     loop:
