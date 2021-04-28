@@ -1,0 +1,50 @@
+---
+- hosts: localhost
+  collections:
+    - netapp.ontap
+  gather_facts: false
+  name: Setup ONTAP
+  vars:
+    vol_name: test1
+    aggr_name: aggr0_cluster1_01_data
+    vserver_name: nas_svm 
+    qtree_name: qtree1
+    share_name: myshare
+    login: &login
+     hostname: 192.168.0.101 # NetApp Cluster IP
+     username: admin # Cluster User
+     password: Netapp1! # Cluster Password
+     https: true
+     validate_certs: false
+
+  tasks:
+  - name: create vol
+    na_ontap_volume:
+      state: present
+      name: "{{vol_name}}"
+      aggregate_name: "{{aggr_name}}"
+      vserver: "{{vserver_name}}"
+      size: 200
+      size_unit: mb
+      junction_path: "/{{vol_name}}"
+      <<: *login
+  - name: Create Qtrees
+    na_ontap_qtree:
+      state: present
+      name: "{{qtree_name}}"
+      flexvol_name:  "{{vol_name}}"
+      #export_policy: policyName
+      security_style: ntfs
+      #oplocks: disabled
+      #unix_permissions:
+      vserver: "{{vserver_name}}"
+      <<: *login
+  - name: Create CIFS share
+    na_ontap_cifs:
+      state: present
+      share_name: "{{share_name}}"
+      path: "/{{vol_name}}/{{qtree_name}}"
+      vserver: "{{vserver_name}}"
+      share_properties: browsable,oplocks
+      symlink_properties: read_only,enable
+      <<: *login

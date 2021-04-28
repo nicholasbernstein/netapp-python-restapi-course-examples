@@ -1,0 +1,61 @@
+---
+- hosts: localhost
+  collections:
+    - netapp.ontap
+  gather_facts: false
+  name: Setup ONTAP
+  vars:
+    vol_name: nas_svm_nfs_vol1
+    aggr_name: aggr0_cluster1_01_data
+    vserver_name: nas_svm 
+    qtree_name: nfstree
+    share_name: myshare
+    nfs_policy: newpol
+    
+    login: &login
+     hostname: 192.168.0.101 # NetApp Cluster IP
+     username: admin # Cluster User
+     password: Netapp1! # Cluster Password
+     https: true
+     validate_certs: false
+
+  tasks:
+  - name: create vol
+    na_ontap_volume:
+      state: present
+      name: "{{vol_name}}"
+      aggregate_name: "{{aggr_name}}"
+      vserver: "{{vserver_name}}"
+      size: 200
+      size_unit: mb
+      junction_path: "/{{vol_name}}"
+      <<: *login
+  - name: Create Qtrees
+    na_ontap_qtree:
+      state: present
+      name: "{{qtree_name}}"
+      flexvol_name:  "{{vol_name}}"
+      #export_policy: policyName
+      security_style: unix
+      #oplocks: disabled
+      #unix_permissions:
+      vserver: "{{vserver_name}}"
+      <<: *login
+  - name: Create export policy
+    na_ontap_export_policy:
+      state: present
+      name: "{{nfs_policy}}"
+      vserver: "{{vserver_name}}"
+      <<: *login
+  - name: Create ExportPolicyRule
+    na_ontap_export_policy_rule:
+      state: present
+      name: "{{nfs_policy}}"
+      vserver: "{{vserver_name}}"
+      client_match: 0.0.0.0/0,1.1.1.0/24
+      ro_rule: any
+      rw_rule: any
+      protocol: nfs,nfs3,nfs4
+      super_user_security: any
+      anonymous_user_id: 0
+      <<: *login
