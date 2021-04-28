@@ -1,0 +1,26 @@
+---
+- hosts: localhost
+  gather_facts: false
+  name: NetApp Cluster1 System Setup
+  vars:  
+        ansible_python_interpreter: /usr/bin/python2
+        old_name: \"aggr1_cluster1_01\"
+        new_name: \"aggr1_cluster1_01_data\"
+        pkgs:
+          - libselinux-python
+          - libselinux-python3
+  tasks:
+  - name: make sure python selinux libraries are installed
+    yum:
+      state: present
+      name: "{{item}}"
+    loop: "{{ pkgs }}"
+
+  - name: replace old aggr name with new name
+    replace:
+      path: "{{ item }}"
+      regexp: "{{ old_name }}"
+      replace: "{{ new_name }}"
+    loop:
+        - global.vars
+        - global.yml
