@@ -1,23 +1,5 @@
 #!/usr/bin/env python3
 
-################################################################################
-#
-# Title:	cleanup_all.py
-# Author:	Adrian Bronder (modified by Ronald Feist)
-# Date:		2020-03-17
-# Description:	Clean up the entire environment
-#		with ONTAP Python client library
-#
-# Resources:	netapp_ontap.resources.volume
-#		netapp_ontap.resources.cifs_service
-#		netapp_ontap.resources.svm
-#
-# URLs:		http://docs.netapp.com/ontap-9/index.jsp
-#		https://pypi.org/project/netapp-ontap/
-#		https://library.netapp.com/ecmdocs/ECMLP2858435/html/index.html
-#
-################################################################################
-
 import json, os, sys, logging
 from netapp_ontap import config, HostConnection, NetAppRestError
 from netapp_ontap.resources import Volume, CifsService, Svm, Igroup
