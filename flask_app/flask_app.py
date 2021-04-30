@@ -3,8 +3,8 @@
 import json, os, sys, logging
 from netapp_ontap import config, HostConnection, NetAppRestError
 from netapp_ontap.resources import Volume, CifsService, Svm, Igroup
-from flask_bootstrap import Bootstrap
-from flask import Flask
+#from flask_bootstrap import Bootstrap
+#from flask import Flask
 
 
 def get_vols_list():
@@ -23,7 +23,6 @@ def get_vols_list():
 	)
 
 
-	### Step 3 - Delete operation
 	# Volume
 	myvols = []
 	try:
