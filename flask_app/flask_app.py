@@ -36,7 +36,7 @@ def get_vols_list():
 
 from flask import Flask, render_template, request
 app = Flask(__name__)
-bootstrap = Bootstrap(app)
+#bootstrap = Bootstrap(app)
 app.debug = True
 
 
