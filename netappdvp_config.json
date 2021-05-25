@@ -1,0 +1,9 @@
+{
+                "version": 1,
+                "storageDriverName": "ontap-nas",
+                "managementLIF": "192.168.0.88",
+                "dataLIF": "192.168.0.88",
+                "svm": "nas_svm",
+                "username": "vsadmin",
+                "password": "Netapp1!"
+}
