@@ -1,0 +1,120 @@
+- hosts: localhost
+  gather_facts: false
+  vars:
+    login:
+      hostname: cluster1.demo.netapp.com
+      username: admin
+      password: Netapp1!
+      https: true
+      validate_certs: false
+    vol_name: www_docroot
+    vserver: nas_svm
+    aggr: cluster1_01_FC_1
+    address: "192.168.0.88"
+  collections:
+    - netapp.ontap
+  tasks:
+    - name: install deps
+      command:
+        argv:
+          - pip3
+          - install
+          - oslo-log
+          - netapp-lib
+          - requests
+
+    - name: Create and Online New Data Aggregate Node1
+      na_ontap_aggregate:
+        state: present
+        service_state: online
+        nodes: cluster1-01
+        name: '{{ aggr }}'
+        disk_count: 5
+        wait_for_online: true
+        time_out: 300
+        hostname: cluster1.demo.netapp.com
+        username: admin
+        password: Netapp1!
+        https: true
+        validate_certs: false
+    - name: Create primary SVM
+      na_ontap_svm:
+        state: present
+        name: '{{ vserver }}'
+        root_volume_aggregate: '{{ aggr }}'
+        comment: Created with Ansible
+        hostname: cluster1.demo.netapp.com
+        username: admin
+        password: Netapp1!
+        https: true
+        validate_certs: false
+    - name: Create NFS LIF Node1
+      na_ontap_interface:
+        state: present
+        interface_name: nfs_lif1
+        home_port: e0c
+        home_node: cluster1-01
+        role: data
+        protocols: nfs
+        admin_status: up
+        failover_policy: system-defined
+        firewall_policy: mgmt-nfs
+        is_auto_revert: true
+        address: "{{ address }}"
+        netmask: 255.255.255.0
+        force_subnet_association: false
+        dns_domain_name: test.com
+        vserver: '{{ vserver }}'
+        hostname: cluster1.demo.netapp.com
+        username: admin
+        password: Netapp1!
+        https: true
+        validate_certs: false
+    - name: Start NFS
+      na_ontap_nfs:
+        state: present
+        service_state: started
+        vserver: '{{ vserver }}'
+        nfsv3: enabled
+        hostname: cluster1.demo.netapp.com
+        username: admin
+        password: Netapp1!
+        https: true
+        validate_certs: false
+    - name: Add NFS Export Rule Under Default Policy
+      na_ontap_export_policy_rule:
+        state: present
+        name: default
+        vserver: '{{ vserver }}'
+        client_match: 0.0.0.0/0
+        ro_rule: sys
+        rw_rule: sys
+        protocol: nfs
+        super_user_security: any
+        hostname: cluster1.demo.netapp.com
+        username: admin
+        password: Netapp1!
+        https: true
+        validate_certs: false
+    - name: Create Volumes
+      na_ontap_volume:
+        state: present
+        name: '{{ vol_name }}'
+        vserver: '{{ vserver }}'
+        aggregate_name: '{{ aggr }}'
+        size: 10
+        size_unit: gb
+        policy: default
+        junction_path: '/{{ vol_name}}'
+        percent_snapshot_space: 0
+        space_guarantee: none
+        volume_security_style: unix
+        wait_for_completion: true
+        hostname: cluster1.demo.netapp.com
+        username: admin
+        password: Netapp1!
+        https: true
+        validate_certs: false
+    - name: summary
+      debug:
+        msg: nfs mount is {{address}}:/{{vol_name}}
