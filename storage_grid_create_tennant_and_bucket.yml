@@ -1,0 +1,43 @@
+---
+- name: demo pb
+  hosts: localhost
+  collections:
+    - netapp.storagegrid
+    - amazon.aws
+  vars:
+      baseurl: "https://dc1-adm1.demo.netapp.com"
+      apiurl: "{{ baseurl}}/api/v3/authorize"
+  tasks:
+  - name: Get Grid Authorization token
+    uri:
+      url: "{{ apiurl }}"
+      method: POST
+      body: {
+        "username": "root",
+        "password": "Netapp1!",
+        "cookie": false,
+        "csrfToken": false
+      }
+      body_format: json
+      validate_certs: false
+    register: auth
+  - name: test 
+    netapp.storagegrid.na_sg_grid_account:
+      api_url: "{{ baseurl }}"
+      auth_token: "{{ auth.json.data }}"
+      validate_certs: false
+      state: present
+      name: AnsibleTenant2
+      protocol: s3
+      management: true
+      use_own_identity_source: true
+      allow_platform_services: true
+      password: "Netapp1!"
+      quota_size: 10
+  - name: bucket
+    amazon.aws.s3_bucket:
+      s3_url: "https://192.168.0.11:8082/"
+      name: ansible2
+      state: present
+      validate_certs: no
+ 
