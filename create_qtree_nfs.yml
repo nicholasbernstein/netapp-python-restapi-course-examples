@@ -6,7 +6,7 @@
   name: Setup ONTAP
   vars:
     vol_name: nas_svm_nfs_vol1
-    aggr_name: aggr0_cluster1_01_data
+    aggr_name: aggr1_cluster1_01_data
     vserver_name: nas_svm 
     qtree_name: nfstree
     share_name: myshare
